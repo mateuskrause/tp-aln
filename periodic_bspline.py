@@ -101,8 +101,14 @@ def _make_periodic_spline(x, y, t, k, axis):
     A = ab[:, kul: -k + kul]
 
     # Print the linear system to be solved
-    print("Linear system matrix A (shape {}):".format(A.shape))
-    print(A)
+    # print("Linear system matrix A (shape {}):".format(A.shape))
+    # print(A)
+    # print("Right-hand side vectors (each column is a system):")
+    # print(y_new[:, :][:-1])
+
+    # Print the full banded matrix (ab) and the right-hand side (y_new[:, :][:-1])
+    print("Full banded matrix ab (shape {}):".format(ab.shape))
+    print(ab)
     print("Right-hand side vectors (each column is a system):")
     print(y_new[:, :][:-1])
 
@@ -159,3 +165,60 @@ def make_interp_spline(x, y, k=3, t=None, bc_type=None, axis=0, check_finite=Tru
     print(f"axis: {axis}")
     # make the perioric spline using the helper function
     return _make_periodic_spline(x, y, t, k, axis)
+
+    # ---------------
+
+    n = y.shape[0]
+    extradim = prod(y.shape[1:])            # calculates the product of the dimensions of y excluding the first dimension
+    y_new = y.reshape(n, extradim)          # reshapes y to a 2D array with n rows and extradim columns
+    c = np.zeros((n + k - 1, extradim))     # initializes a zero array for coefficients for the spline
+
+    # n <= k case is solved with full matrix
+    if n <= k:
+        print("n <= k case, of which we need to solve with full matrix (not doing it now)")
+
+    # number of coefficients needed to represent the spline. 
+    nt = len(t) - k - 1
+
+    # size of block elements
+    kul = int(k / 2)
+
+    # kl = ku = k
+    ab = np.zeros((3 * k + 1, nt), dtype=np.float64, order='F')
+
+    # upper right and lower left blocks
+    ur = np.zeros((kul, kul))
+    ll = np.zeros_like(ur)
+
+    # `offset` is made to shift all the non-zero elements to the end of the
+    # matrix
+    # NB: 1. drop the last element of `x` because `x[0] = x[-1] + T` & `y[0] == y[-1]`
+    #     2. pass ab.T to _coloc to make it C-ordered; below it'll be fed to banded
+    #        LAPACK, which needs F-ordered arrays
+    _dierckx._coloc(x[:-1], t, k, ab.T, k)
+
+    # remove zeros before the matrix
+    ab = ab[-k - (k + 1) % 2:, :]
+
+    # The least elements in rows (except repetitions) are diagonals
+    # of block matrices. Upper right matrix is an upper triangular
+    # matrix while lower left is a lower triangular one.
+    for i in range(kul):
+        ur += np.diag(ab[-i - 1, i: kul], k=i)
+        ll += np.diag(ab[i, -kul - (k % 2): n - 1 + 2 * kul - i], k=-i)
+
+    # remove elements that occur in the last point
+    # (first and last points are equivalent)
+    A = ab[:, kul: -k + kul]
+
+    # Print the linear system to be solved
+    print("Linear system matrix A (shape {}):".format(A.shape))
+    print(A)
+    print("Right-hand side vectors (each column is a system):")
+    print(y_new[:, :][:-1])
+
+    for i in range(extradim):
+        cc = woodbury_algorithm(A, ur, ll, y_new[:, i][:-1], k)
+        c[:, i] = np.concatenate((cc[-kul:], cc, cc[:kul + k % 2]))
+    c = np.ascontiguousarray(c.reshape((n + k - 1,) + y.shape[1:]))
+    return BSpline.construct_fast(t, c, k, extrapolate='periodic', axis=axis)
