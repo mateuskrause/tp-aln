@@ -58,9 +58,6 @@ def _periodic_knots(x, k):
 
 def _make_periodic_spline(x, y, t, k, axis):
     n = y.shape[0]
-    print(f"Length of y: {len(y)}")
-    print(f"n = {n}, k = {k}, t = {t}, axis = {axis}")
-
     extradim = prod(y.shape[1:])            # calculates the product of the dimensions of y excluding the first dimension
     y_new = y.reshape(n, extradim)          # reshapes y to a 2D array with n rows and extradim columns
     c = np.zeros((n + k - 1, extradim))     # initializes a zero array for coefficients for the spline
@@ -92,7 +89,6 @@ def _make_periodic_spline(x, y, t, k, axis):
     # remove zeros before the matrix
     ab = ab[-k - (k + 1) % 2:, :]
 
-
     # The least elements in rows (except repetitions) are diagonals
     # of block matrices. Upper right matrix is an upper triangular
     # matrix while lower left is a lower triangular one.
@@ -104,6 +100,12 @@ def _make_periodic_spline(x, y, t, k, axis):
     # (first and last points are equivalent)
     A = ab[:, kul: -k + kul]
 
+    # Print the linear system to be solved
+    print("Linear system matrix A (shape {}):".format(A.shape))
+    print(A)
+    print("Right-hand side vectors (each column is a system):")
+    print(y_new[:, :][:-1])
+
     for i in range(extradim):
         cc = woodbury_algorithm(A, ur, ll, y_new[:, i][:-1], k)
         c[:, i] = np.concatenate((cc[-kul:], cc, cc[:kul + k % 2]))
@@ -112,6 +114,7 @@ def _make_periodic_spline(x, y, t, k, axis):
 
 
 def make_interp_spline(x, y, k=3, t=None, bc_type=None, axis=0, check_finite=True):
+    
     # assure that y is a numpy array
     y = np.asarray(y)
 
@@ -134,5 +137,25 @@ def make_interp_spline(x, y, k=3, t=None, bc_type=None, axis=0, check_finite=Tru
     # convert t to a numpy array of floats, ensuring it is contiguous in memory
     t = _as_float_array(t, check_finite)
 
+
+    
+    # x : 1-D array of independent variable values (the "knots" or sample points) at which the data y are provided.
+    #     In the context of interpolation, `x` represents the positions along the domain where the function values are known.
+    # y : Array of dependent variable values (the data to be interpolated) corresponding to each value in `x`.
+    #     In the context of interpolation, `y` contains the function values at the positions specified by `x`.
+    # k : Degree of the spline. Must be a non-negative integer. Default is 3 (cubic spline).
+    #     In the context of interpolation, `k` determines the smoothness and flexibility of the resulting spline curve.
+    # t : Knot vector. If None, a knot vector suitable for periodic splines is generated automatically.
+    #     In the context of interpolation, `t` specifies the locations of the knots that define the piecewise polynomial segments of the spline.
+    # axis : int, optional
+    #     Axis along which the interpolation is performed. Default is 0.
+    #     In the context of interpolation, `axis` specifies which axis of the `y` array corresponds to the data points to be interpolated."""
+    
+
+    print(f"x: {x}")
+    print(f"y: {y}")
+    print(f"k: {k}")
+    print(f"t: {t}")
+    print(f"axis: {axis}")
     # make the perioric spline using the helper function
     return _make_periodic_spline(x, y, t, k, axis)

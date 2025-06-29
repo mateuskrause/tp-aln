@@ -14,7 +14,7 @@ def closed_bspline_through_points(points, num_points=200):
 
     # parametriza os pontos uniformemente no intervalo [0, 1]
     t = np.linspace(0, 1, n)
-    print(f"t: {t}")
+    # print(f"t: {t}")
 
     # interpola os pontos separadamente
     spl_x = make_interp_spline(t, points[:, 0], k=3, bc_type='periodic')
@@ -28,7 +28,7 @@ def closed_bspline_through_points(points, num_points=200):
 
 
 if __name__ == "__main__":
-    # pontos de exemplo
+    # # pontos de exemplo
     points = np.array([
         [5114, 7717],
         [3945, 8831],
@@ -48,6 +48,15 @@ if __name__ == "__main__":
         [5812, 8665]
     ])
     points[:, 1] = 10000 - points[:, 1]
+
+    # pontos de exemplo
+    # points = np.array([
+    #     [0, 0],
+    #     [0, 1],
+    #     [1, 1],
+    #     [1, 0]
+    # ])
+    # points[:, 1] = 10000 - points[:, 1]
 
     # criar e obter pontos da curva
     x, y = closed_bspline_through_points(points)
