@@ -10,15 +10,15 @@ def closed_bspline_through_points(points, num_points=200):
     points = np.vstack([points, points[0]])     # fecha a curva repetindo o primeiro ponto no fim
 
     n = len(points)
-    print(f"Number of points: {n}")
+    # print(f"Number of points: {n}")
 
     # parametriza os pontos uniformemente no intervalo [0, 1]
     t = np.linspace(0, 1, n)
     # print(f"t: {t}")
 
     # interpola os pontos separadamente
-    spl_x = make_interp_spline(t, points[:, 0], k=3, bc_type='periodic')
-    spl_y = make_interp_spline(t, points[:, 1], k=3, bc_type='periodic')
+    spl_x = make_interp_spline(t, points[:, 0], show_linear_system = True)
+    spl_y = make_interp_spline(t, points[:, 1], show_linear_system = True)
 
     t_dense = np.linspace(0, 1, num_points)
     x_dense = spl_x(t_dense)
@@ -29,33 +29,33 @@ def closed_bspline_through_points(points, num_points=200):
 
 if __name__ == "__main__":
     # # pontos de exemplo
-    points = np.array([
-        [5114, 7717],
-        [3945, 8831],
-        [2070, 9300],
-        [1977, 8258],
-        [2297, 7445],
-        [1202, 7088],
-        [ 343, 5265],
-        [1724, 4626],
-        [3192, 3791],
-        [4961,  343],
-        [7049, 4442],
-        [9204, 5425],
-        [8552, 6917],
-        [7668, 7679],
-        [7823, 9082],
-        [5812, 8665]
-    ])
-    points[:, 1] = 10000 - points[:, 1]
+    # points = np.array([
+    #     [5114, 7717],
+    #     [3945, 8831],
+    #     [2070, 9300],
+    #     [1977, 8258],
+    #     [2297, 7445],
+    #     [1202, 7088],
+    #     [ 343, 5265],
+    #     [1724, 4626],
+    #     [3192, 3791],
+    #     [4961,  343],
+    #     [7049, 4442],
+    #     [9204, 5425],
+    #     [8552, 6917],
+    #     [7668, 7679],
+    #     [7823, 9082],
+    #     [5812, 8665]
+    # ])
+    # points[:, 1] = 10000 - points[:, 1]
 
     # pontos de exemplo
-    # points = np.array([
-    #     [0, 0],
-    #     [0, 1],
-    #     [1, 1],
-    #     [1, 0]
-    # ])
+    points = np.array([
+        [0, 0],
+        [0, 1],
+        [1, 1],
+        [1, 0]
+    ])
     # points[:, 1] = 10000 - points[:, 1]
 
     # criar e obter pontos da curva

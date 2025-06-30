@@ -12,7 +12,8 @@ from scipy.interpolate import BSpline
 from scipy._lib._util import normalize_axis_index
 from scipy.interpolate import _dierckx
 
-from woodbury_algorithm import *
+# from woodbury_algorithm import *
+from scipy.interpolate._bsplines import _woodbury_algorithm
 
 # -----------------------
 
@@ -85,7 +86,7 @@ def print_full_cyclic_banded_matrix(A, ur, ll):
     print(full)
 
 
-def make_interp_spline(x, y, show_linear_system = False):
+def make_interp_spline(x, y, show_linear_system = False, wa = _woodbury_algorithm):
 
     k = 3                   # default B-spline degree as 3 (cubic B-spline)
     axis=0                  # default axis for interpolation is 0 (first dimension)
@@ -177,7 +178,7 @@ def make_interp_spline(x, y, show_linear_system = False):
     # Solve the cyclic banded linear system for each right-hand side (each column of y_new)
     for i in range(extradim):
         # Solve the system using the Woodbury algorithm for periodic/cyclic banded matrices
-        cc = woodbury_algorithm(A, ur, ll, y_new[:, i][:-1], k)
+        cc = wa(A, ur, ll, y_new[:, i][:-1], k)
         # Concatenate the periodic wrap-around coefficients to form the full coefficient vector
         c[:, i] = np.concatenate((cc[-kul:], cc, cc[:kul + k % 2]))
 
